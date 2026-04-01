@@ -1,14 +1,14 @@
 ﻿using System.Text.Json;
-using Program.Interfaces;
-using Program.Models;
+using DataProvider.Interfaces;
+using DataProvider.Models;
 
-namespace Program;
+namespace DataProvider;
 
 public class ApiClient
 {
     private HttpClient Client { get; set; }
     private IProductFactory ProductFactory { get; set; }
-    public required StoreGuid SilpoStore { get; init; }
+
     private static readonly JsonSerializerOptions JsonOptionsWeb = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
 
@@ -18,9 +18,9 @@ public class ApiClient
         ProductFactory = factory;
     }
 
-    private async Task<HttpResponseMessage> GetPageAsync(int pageSize = 100, int offset = 0)
+    private async Task<HttpResponseMessage> GetPageAsync(StoreGuid silpoStore, int pageSize = 100, int offset = 0)
     {
-        string url = $"https://sf-ecom-api.silpo.ua/v1/uk/branches/{SilpoStore}/products?limit={pageSize}&offset={offset}&includeChildCategories=true&sortBy=popularity&sortDirection=desc&mustHavePromotion=true";
+        string url = $"https://sf-ecom-api.silpo.ua/v1/uk/branches/{silpoStore}/products?limit={pageSize}&offset={offset}&includeChildCategories=true&sortBy=popularity&sortDirection=desc&mustHavePromotion=true";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("authority", "sf-ecom-api.silpo.ua");
         request.Headers.Add("accept", "application/json");
@@ -43,24 +43,24 @@ public class ApiClient
         return response;
     }
     
-    public async Task<ICollection<Product>> LoadAllPromotedProducts()
+    public async Task<ICollection<Product>> LoadAllPromotedProducts(StoreGuid storeId)
     {
         var products = new List<Product>();
 
         try
         {
             // Get first page
-            var page = await GetPageAsync();
+            var page = await GetPageAsync(storeId);
             var content = await page.Content.ReadAsStringAsync();
             var root = GetProductsFromPage(content);
             products.AddRange(root.products);
             // Get remaining pages
             for (int offset = 100; offset < root.total; offset += 100)
             {
-                await Task.Delay(430);
+                await Task.Delay(120);
                 try
                 {
-                    page = await GetPageAsync(100, offset);
+                    page = await GetPageAsync(storeId,100, offset);
                     content = await page.Content.ReadAsStringAsync();
                     var nextRoot = GetProductsFromPage(content);
                     

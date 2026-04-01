@@ -1,6 +1,6 @@
-﻿using Program.Models;
+﻿using DataProvider.Models;
 
-namespace Program
+namespace DataProvider
 {
     abstract class Program
     {
@@ -10,10 +10,11 @@ namespace Program
         static async Task Main(string[] args)
         {
             SectionMapper.Initialize();
-            var maidanClient = new ApiClient(HttpClient, new ProductFactory()) {SilpoStore = StoreGuid.KyivskiMaidan};
-            var allProducts = await maidanClient.LoadAllPromotedProducts();
+            var maidanClient = new ApiClient(HttpClient, new ProductFactory());
+            var allProducts = await maidanClient.LoadAllPromotedProducts(StoreGuid.KyivskiMaidan);
             
             Console.WriteLine($"Products count in local collection: {allProducts.Count}");
+            
             
             Console.ReadKey(true);
             

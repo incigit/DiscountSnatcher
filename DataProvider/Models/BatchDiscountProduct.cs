@@ -1,4 +1,4 @@
-﻿namespace Program.Models;
+﻿namespace DataProvider.Models;
 
 public record BatchDiscountProduct(GeneralProductData data, List<SpecialPrice> offers) : Product(data)
 {

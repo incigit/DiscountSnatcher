@@ -1,4 +1,4 @@
-﻿namespace Program.Models;
+﻿namespace DataProvider.Models;
 
 public record GeneralProductData // composition helper class
 {

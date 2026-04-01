@@ -1,12 +1,22 @@
-﻿using Telegram.Bot;
+﻿using DataProvider;
+using DataProvider.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
+
 using var cts = new CancellationTokenSource();
 
-var bot = new TelegramBotClient("", cancellationToken:cts.Token);
+var services = new ServiceCollection();
+services.AddSingleton<HttpClient>();
+services.AddSingleton<ApiClient>();
+services.AddSingleton<IProductFactory, ProductFactory>();
+
+
+var bot = new TelegramBotClient(File.ReadAllText("token.txt").Trim(), cancellationToken:cts.Token);
 var me = await bot.GetMe();
 
 bot.OnMessage += BotOnMessage;

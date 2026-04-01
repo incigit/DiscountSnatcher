@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Program.Models;
+namespace DataProvider.Models;
 
 public record DiscountProduct : Product
 {

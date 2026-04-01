@@ -1,7 +1,7 @@
-﻿using Program.Interfaces;
-using Program.Models;
+﻿using DataProvider.Interfaces;
+using DataProvider.Models;
 
-namespace Program;
+namespace DataProvider;
 
 public class ProductFactory : IProductFactory
 {

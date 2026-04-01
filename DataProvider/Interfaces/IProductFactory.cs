@@ -1,6 +1,6 @@
-﻿using Program.Models;
+﻿using DataProvider.Models;
 
-namespace Program.Interfaces;
+namespace DataProvider.Interfaces;
 
 public interface IProductFactory
 {
