@@ -9,7 +9,8 @@ public class ApiClient
     private HttpClient Client { get; set; }
     private IProductFactory ProductFactory { get; set; }
 
-    private static readonly JsonSerializerOptions JsonOptionsWeb = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions
+        JsonOptionsWeb = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
 
     public ApiClient(HttpClient httpClient, IProductFactory factory)
@@ -20,7 +21,8 @@ public class ApiClient
 
     private async Task<HttpResponseMessage> GetPageAsync(StoreGuid silpoStore, int pageSize = 100, int offset = 0)
     {
-        string url = $"https://sf-ecom-api.silpo.ua/v1/uk/branches/{silpoStore}/products?limit={pageSize}&offset={offset}&includeChildCategories=true&sortBy=popularity&sortDirection=desc&mustHavePromotion=true";
+        string url =
+            $"https://sf-ecom-api.silpo.ua/v1/uk/branches/{silpoStore}/products?limit={pageSize}&offset={offset}&includeChildCategories=true&sortBy=popularity&sortDirection=desc&mustHavePromotion=true";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("authority", "sf-ecom-api.silpo.ua");
         request.Headers.Add("accept", "application/json");
@@ -42,7 +44,7 @@ public class ApiClient
 
         return response;
     }
-    
+
     public async Task<ICollection<Product>> LoadAllPromotedProducts(StoreGuid storeId)
     {
         var products = new List<Product>();
@@ -60,10 +62,10 @@ public class ApiClient
                 await Task.Delay(120);
                 try
                 {
-                    page = await GetPageAsync(storeId,100, offset);
+                    page = await GetPageAsync(storeId, 100, offset);
                     content = await page.Content.ReadAsStringAsync();
                     var nextRoot = GetProductsFromPage(content);
-                    
+
                     products.AddRange(nextRoot.products);
                 }
                 catch (HttpRequestException ex)
@@ -74,7 +76,6 @@ public class ApiClient
                 {
                     throw new InvalidDataException($"Invalid JSON at offset {offset}", ex);
                 }
-                
             }
         }
         catch (HttpRequestException ex)
@@ -92,12 +93,26 @@ public class ApiClient
     private (IEnumerable<Product> products, int total) GetProductsFromPage(string json)
     {
         var page = JsonSerializer.Deserialize<PageRoot>(json, JsonOptionsWeb);
-        if (page == null) 
+        if (page == null)
             throw new InvalidOperationException($"Failed to deserialize page");
-        if (page.Total == 0) 
+        if (page.Total == 0)
             throw new InvalidOperationException("API returned 0 products");
-        
+
         return (page.Items.Select(p => ProductFactory.Create(p)), page.Total);
     }
+
+    private const string CachePath = "products_cache.json";
+
+    public static async Task<ICollection<Product>?> TryLoadAsync()
+    {
+        if (!File.Exists(CachePath)) return null;
+        var json = await File.ReadAllTextAsync(CachePath);
+        return JsonSerializer.Deserialize<List<Product>>(json, JsonOptionsWeb);
+    }
+
+    public static async Task SaveAsync(ICollection<Product> products)
+    {
+        var json = JsonSerializer.Serialize(products, JsonOptionsWeb);
+        await File.WriteAllTextAsync(CachePath, json);
+    }
 }
-    

@@ -11,7 +11,10 @@ namespace DataProvider
         {
             SectionMapper.Initialize();
             var maidanClient = new ApiClient(HttpClient, new ProductFactory());
-            var allProducts = await maidanClient.LoadAllPromotedProducts(StoreGuid.KyivskiMaidan);
+            var allProducts = await ApiClient.TryLoadAsync()
+                              ?? await maidanClient.LoadAllPromotedProducts(StoreGuid.KyivskiMaidan);
+
+            await ApiClient.SaveAsync(allProducts);
             
             Console.WriteLine($"Products count in local collection: {allProducts.Count}");
             

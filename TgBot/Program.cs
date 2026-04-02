@@ -1,6 +1,7 @@
 ﻿using DataProvider;
 using DataProvider.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -14,7 +15,23 @@ var services = new ServiceCollection();
 services.AddSingleton<HttpClient>();
 services.AddSingleton<ApiClient>();
 services.AddSingleton<IProductFactory, ProductFactory>();
+services.AddSingleton<ProductCache>();
 
+var host = Host.CreateDefaultBuilder()
+    .ConfigureServices(services =>
+    {
+        services.AddSingleton<HttpClient>();
+        services.AddSingleton<ApiClient>();
+        services.AddSingleton<IProductFactory, ProductFactory>();
+        services.AddSingleton<ProductCache>();
+        services.AddSingleton<IEnumerable<StoreGuid>>([StoreGuid.KyivskiMaidan]);
+        services.AddHostedService<ProductCacheRefreshService>();
+    })
+    .Build();
+
+await host.StartAsync();
+// your bot setup here, using host.Services.GetRequiredService<...>()
+await host.WaitForShutdownAsync();
 
 var bot = new TelegramBotClient(File.ReadAllText("token.txt").Trim(), cancellationToken:cts.Token);
 var me = await bot.GetMe();

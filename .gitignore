@@ -482,3 +482,4 @@ $RECYCLE.BIN/
 *.swp
 
 token.txt
+products_cache.json
